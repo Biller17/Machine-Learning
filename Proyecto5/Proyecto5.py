@@ -11,7 +11,6 @@ def get_costo(activacion, x, y ,b, w):
     error = 0
     m = x.shape[0]
     prediction = np.array(prediceRNYaEntrada(x, w,b,activacion)).transpose()
-    print(prediction)
     if activacion == "lineal":
         for i in range(m):
             error+= (y[i] - prediction[i])**2
@@ -69,8 +68,15 @@ def function_A(z, activacion):
 
 #funcoin que obtiene dz dpeendiendo de la activacion
 def function_dz(a, y, activacion):
-    dz = a-y
-    return dz
+    #es la misma funcion pero por cuestiones de como se programo es mas facil dividir las secciones
+    #en teoria se hace lo mismo
+    if activacion == "lineal":
+        y = np.asarray(y).reshape(-1)
+        dz = a-y
+        return dz
+    else:
+        dz = a-y
+        return dz
 
 
 
