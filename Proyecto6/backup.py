@@ -42,26 +42,30 @@ def entrenaRN(input_layer_size, hidden_layer_size, num_labels, x, y):
     for i in range(iterations):#error < 0.28):
 
         #feedforward
-        z1 = np.dot(x, w1) #+ b1
+        z1 = np.dot(x, w1) + b1
         #se obtiene a de la funcion dependiendo de la funcion de activacion
         a1 = sigmoidal(z1)
-        z2 = np.dot(a1, w2) #+ b2
-        a2 = sigmoidal(z2)
+        z2 = np.dot(a1, w2) + b2
+        a2 = sigmoidal(z2)#softmax
         J = get_cost(a2, y)
         #backpropagation
-        dz2 = a2-y
-        dw2 = 1/m * dz2.transpose().dot(a1)
-        db2 = 1/m * np.sum(dz2, axis=1, keepdims=True)
-        dz1 = dw2.dot(dz2).transpose().dot(sigmoidal(z1))
-        dw1 = 1/m * dz1.transpose.dot(x)
-        db1 = 1/m * np.sum(dz1, axis=1, keepdims=True)
+        dz2 = a2-y #5000x10
+        dw2 = (1/m) * a1.transpose().dot(dz2)
+        db2 = (1/m) * np.sum(dz2, axis=1, keepdims=True)
+        print("w2", w2.shape)
+        print("dz2", dz2.shape)
+        print("z1", z1.shape)
+        print("db2", db2.shape)
+        dz1 = w2.dot(dz2.transpose()).transpose().dot(sigmoidalGradiente(z1).transpose())
+
+        #dz1 = np.multiply(w2.transpose() * dz2, sigmoidalGradiente(x))
+        dw1 = (1/m) * dz1.dot(x)
+        print("dw1", dw1.shape)
+        db1 = (1/m) * np.sum(dz1, axis=1, keepdims=True)
         # dw = np.asarray(((1/m) * x.transpose().dot(dz)).transpose()).reshape(-1)
         # db = (1/m) * np.sum(dz)
         #actualizacion de pesos y bias
-        print("w1", w1.shape)
-        print("dw1", dw1.shape)
-        print("w2", w2.shape)
-        print("dw2", dw2.shape)
+        #dz1 = np.multiplpy(w2.t * dz2, sigmoidalGradiente(a1))
         w1 -= alpha * dw1
         b1 -= alpha * db1
         w2 -= alpha * dw2
@@ -122,8 +126,8 @@ def load_data(filename):########################################################
         y = data[:, 400]
         x = np.delete(data,400, 1)
         #agregando unos a matriz de xx
-        one_column = np.ones((len(x),1))
-        x = np.append(one_column,x,axis=1)
+        #one_column = np.ones((len(x),1))
+        #x = np.append(one_column,x,axis=1)
         finalY = np.zeros(shape=(5000, 10))
         for i in range(len(y)):
             temp = np.zeros(10)
