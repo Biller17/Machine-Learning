@@ -38,7 +38,7 @@ def entrenaRN(input_layer_size, hidden_layer_size, num_labels, x, y):
     b1 = initialize_bias(hidden_layer_size)
     b2 = initialize_bias(num_labels)
     errors = []
-    iterations = 500
+    iterations = 50
     for i in range(iterations):#error < 0.28):
 
         #feedforward
@@ -114,7 +114,7 @@ def prediceRNYaEntrenada(x, w1, b1, w2, b2):
         for j in range(a2.shape[1]):
             if(a2[i,j] == 1):
                 prediction[i] = j
-
+                print(prediction[i])
     return prediction
 
 
@@ -149,11 +149,22 @@ def load_data(filename):########################################################
             finalY[i] = temp
     return x,finalY
 
+
+
+def load_trained_data():
+    w1 = np.genfromtxt("w1.txt", delimiter = ",")
+    w2 = np.genfromtxt("w2.txt", delimiter = ",")
+    b1 = np.genfromtxt("b1.txt", delimiter = ",")
+    b2 = np.genfromtxt("b2.txt", delimiter = ",")
+    return w1,w2,b1,b2
+
+
 if __name__ == '__main__':
     print("Proyecto 6 Adrian Biller A01018940")
     x,y = load_data("digitos.txt")
     w1, b1, w2, b2 = entrenaRN(x.shape[1], 25, 10, x, y)
-    np.savetxt("w1.csv", w1, delimiter=",")
-    np.savetxt("w2.csv", w2, delimiter=",")
-    np.savetxt("b1.csv", b1, delimiter=",")
-    np.savetxt("b2.csv", b2, delimiter=",")
+    prediction = np.array(prediceRNYaEntrenada(x, w1, b1, w2, b2))
+    np.savetxt("w1.txt", w1, delimiter=",")
+    np.savetxt("w2.txt", w2, delimiter=",")
+    np.savetxt("b1.txt", b1, delimiter=",")
+    np.savetxt("b2.txt", b2, delimiter=",")
