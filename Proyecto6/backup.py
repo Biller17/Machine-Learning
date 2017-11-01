@@ -32,13 +32,13 @@ def graficar_error(errors):
 
 def entrenaRN(input_layer_size, hidden_layer_size, num_labels, x, y):
     m = x.shape[0]
-    alpha = 0.03
+    alpha = 3
     w1 = randInicializaPesos(hidden_layer_size, input_layer_size)
     w2 = randInicializaPesos(num_labels, hidden_layer_size)
     b1 = initialize_bias(hidden_layer_size)
     b2 = initialize_bias(num_labels)
     errors = []
-    iterations = 5000
+    iterations = 500
     for i in range(iterations):#error < 0.28):
 
         #feedforward
@@ -46,31 +46,30 @@ def entrenaRN(input_layer_size, hidden_layer_size, num_labels, x, y):
         #se obtiene a de la funcion dependiendo de la funcion de activacion
         a1 = sigmoidal(z1)
         z2 = np.dot(a1, w2) + b2
-        a2 = sigmoidal(z2)#softmax
+        a2 = sigmoidal(z2)
         J = get_cost(a2, y)
+        print(J)
         #backpropagation
         dz2 = a2-y #5000x10
         dw2 = (1/m) * a1.transpose().dot(dz2)
         db2 = (1/m) * np.sum(dz2, axis=1, keepdims=True)
-        print("w2", w2.shape)
-        print("dz2", dz2.shape)
-        print("z1", z1.shape)
-        print("db2", db2.shape)
-        dz1 = w2.dot(dz2.transpose()).transpose().dot(sigmoidalGradiente(z1).transpose())
-
+        #dz1 = w2.dot(dz2.transpose()).transpose().dot(sigmoidalGradiente(z1).transpose())
+        dz1 = np.multiply((w2.dot(dz2.transpose())), sigmoidalGradiente(z1).transpose())
         #dz1 = np.multiply(w2.transpose() * dz2, sigmoidalGradiente(x))
         dw1 = (1/m) * dz1.dot(x)
-        print("dw1", dw1.shape)
         db1 = (1/m) * np.sum(dz1, axis=1, keepdims=True)
         # dw = np.asarray(((1/m) * x.transpose().dot(dz)).transpose()).reshape(-1)
         # db = (1/m) * np.sum(dz)
         #actualizacion de pesos y bias
         #dz1 = np.multiplpy(w2.t * dz2, sigmoidalGradiente(a1))
-        w1 -= alpha * dw1
-        b1 -= alpha * db1
+        db1temp = np.asarray(db1).reshape(-1)
+        w1 -= alpha * dw1.transpose()
+        #b1 -= alpha * db1temp
         w2 -= alpha * dw2
-        b2 -= alpha * db2
+        #b2 -= alpha * db2
         #errors.append(J)
+
+    #saving weights and bias in a csv
     return w1, b1, w2, b2
 
 
@@ -104,6 +103,18 @@ def initialize_bias(size):######################################################
 #se incluyen los valores x, los pesos, la b y la funcion de activacion
 def prediceRNYaEntrenada(x, w1, b1, w2, b2):
     prediction = np.array(x.shape[0])
+    z1 = np.dot(x, w1) + b1
+    a1 = sigmoidal(z1)
+    z2 = np.dot(a1, w2) + b2
+    a2 = sigmoidal(z2)
+
+
+    #creando prediccion a base de los 1 prendidos en cada registro de a2
+    for i in range(a2.shape[0]):
+        for j in range(a2.shape[1]):
+            if(a2[i,j] == 1):
+                prediction[i] = j
+
     return prediction
 
 
@@ -142,4 +153,7 @@ if __name__ == '__main__':
     print("Proyecto 6 Adrian Biller A01018940")
     x,y = load_data("digitos.txt")
     w1, b1, w2, b2 = entrenaRN(x.shape[1], 25, 10, x, y)
-    trained_data = np.array(w1, b1, w2, b2)
+    np.savetxt("w1.csv", w1, delimiter=",")
+    np.savetxt("w2.csv", w2, delimiter=",")
+    np.savetxt("b1.csv", b1, delimiter=",")
+    np.savetxt("b2.csv", b2, delimiter=",")
