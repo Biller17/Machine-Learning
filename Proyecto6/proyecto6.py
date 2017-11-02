@@ -6,16 +6,18 @@ from pylab import plot, ylim
 Proyecto 6
 Aprendizaje automatico
 Octubre 30'''
-#funconi que obtiene el costo dependiendo de la funcion de activacion
+#funcion que obtiene el costo promedio por prediccion hecha en a
 def get_cost(a, y):
-    m = y.shape[0]
+    m, n = y.shape
     J = 0
     for i in range(m):
-        first_part = -1*y[i]*np.log(a[i])
-        second_part = (1-y[i])*np.log(1 - a[i])
-        J+=first_part - second_part
+        for j in range(n):
+            first_part = -1*y[i][j]*np.log(a[i][j])
+            second_part = (1-y[i][j])*np.log(1 - a[i][j])
+            J+=first_part - second_part
     J/=m
     return J
+
 
 #funcion que recibe los errores y crea la grafica
 def graficar_error(errors):
@@ -29,30 +31,36 @@ def graficar_error(errors):
     plt.show()
 
 
-
+'''funcion de entrena red neuronal, recibe el numero de inputs que recibe,
+hidden_layer_size, numero de neuronas en la capa intermedia
+num_labels, numero de salidas de la red neuronal
+valores x y y de los ejemplos
+utiliza backpropagation para poder predecir los resultados'''
 def entrenaRN(input_layer_size, hidden_layer_size, num_labels, x, y):
     m = x.shape[0]
     alpha = 3
+    #inicializacion de w1, w2, b1, b2 con numeros aleatorios definidos por una epsilon
     w1 = randInicializaPesos(hidden_layer_size, input_layer_size)
     w2 = randInicializaPesos(num_labels, hidden_layer_size)
     b1 = initialize_bias(hidden_layer_size)
     b2 = initialize_bias(num_labels)
     errors = []
-    iterations = 50
+    #numero de iteraciones para el entrenamiento
+    iterations = 5000
     for i in range(iterations):#error < 0.28):
 
         #feedforward
         z1 = np.dot(x, w1) + b1
-        #se obtiene a de la funcion dependiendo de la funcion de activacion
         a1 = sigmoidal(z1)
         z2 = np.dot(a1, w2) + b2
         a2 = sigmoidal(z2)
         J = get_cost(a2, y)
         print(J)
+
         #backpropagation
         dz2 = a2-y #5000x10
         dw2 = (1/m) * a1.transpose().dot(dz2)
-        db2 = (1/m) * np.sum(dz2, axis=1, keepdims=True)
+        db2 = (1/m) * np.sum(dz2, axis=0, keepdims=True)
         #dz1 = w2.dot(dz2.transpose()).transpose().dot(sigmoidalGradiente(z1).transpose())
         dz1 = np.multiply((w2.dot(dz2.transpose())), sigmoidalGradiente(z1).transpose())
         #dz1 = np.multiply(w2.transpose() * dz2, sigmoidalGradiente(x))
@@ -61,15 +69,15 @@ def entrenaRN(input_layer_size, hidden_layer_size, num_labels, x, y):
         # dw = np.asarray(((1/m) * x.transpose().dot(dz)).transpose()).reshape(-1)
         # db = (1/m) * np.sum(dz)
         #actualizacion de pesos y bias
-        #dz1 = np.multiplpy(w2.t * dz2, sigmoidalGradiente(a1))
         db1temp = np.asarray(db1).reshape(-1)
+        db2temp = np.asarray(db2).reshape(-1)
         w1 -= alpha * dw1.transpose()
-        #b1 -= alpha * db1temp
+        b1 -= alpha * db1temp
         w2 -= alpha * dw2
-        #b2 -= alpha * db2
-        #errors.append(J)
-
-    #saving weights and bias in a csv
+        b2 -= alpha * db2temp
+        errors.append(J)
+    #graficar todos los errores obtenidos
+    graficar_error(errors)
     return w1, b1, w2, b2
 
 
@@ -82,7 +90,7 @@ def sigmoidal(z):###############################################################
     return 1.0 / (1.0 + (np.exp(-z)))
 
 #inicializacion de los valores de pesos dependiendo del numero de neuronas y capas
-def randInicializaPesos(L_in, L_out):                               ##############################################
+def randInicializaPesos(L_in, L_out): ################################################################
     epsilon = 0.12
     weights = np.empty([L_out, L_in])
     for i in range(L_out):
@@ -90,7 +98,7 @@ def randInicializaPesos(L_in, L_out):                               ############
             weights[i, j] = random.uniform(-epsilon, epsilon)
     return weights
 
-
+#inicializacion de los vectores bias
 def initialize_bias(size):#############################################################################
     bias = np.zeros(size)
     epsilon = 0.12
@@ -99,22 +107,37 @@ def initialize_bias(size):######################################################
     return bias
 
 
+
+#funcion que traduce el arreglo de cada registro de a2 a la posicion del numero mas grande del arreglo
+def translate_a(a):
+    #numero maximo dentro de cada arreglo que define su clase
+    max_class = 0
+    #index del numero maximo
+    max_index = 100
+    for i in range(a.shape[0]):
+        if(max_class < a[i]):
+            max_class = a[i]
+            max_index = i
+
+    if(i == 10):
+        translation = 0
+    else:
+        translation = i
+    return translation
+
 #funcion de prediccion dependiendo de la activacion
 #se incluyen los valores x, los pesos, la b y la funcion de activacion
 def prediceRNYaEntrenada(x, w1, b1, w2, b2):
-    prediction = np.array(x.shape[0])
+    #feedforward
     z1 = np.dot(x, w1) + b1
     a1 = sigmoidal(z1)
     z2 = np.dot(a1, w2) + b2
     a2 = sigmoidal(z2)
-
-
+    #resultado a comparar
+    prediction = np.zeros(a2.shape[0])
     #creando prediccion a base de los 1 prendidos en cada registro de a2
     for i in range(a2.shape[0]):
-        for j in range(a2.shape[1]):
-            if(a2[i,j] == 1):
-                prediction[i] = j
-                print(prediction[i])
+        prediction[i] = translate_a(a2[i])
     return prediction
 
 
@@ -159,11 +182,31 @@ def load_trained_data():
     return w1,w2,b1,b2
 
 
+# def check_error_percentage(y, prediction):
+#     aproximate = 0
+#     m = y.shape[0]
+#     translated_y = np.zeros(m)
+#     for i in range(m):
+#         translated_y[i] = translate_a(y[i])
+#
+#     for i in range(m):
+#         print("y",translated_y[i])
+#         print("pred",prediction[i])
+#         if(translated_y[i] == prediction[i]):
+#             aproximate+=1
+#     percentage = (m - aproximate)/ m
+#     return percentage
+
+
 if __name__ == '__main__':
     print("Proyecto 6 Adrian Biller A01018940")
+    #cargar datos del archivo
     x,y = load_data("digitos.txt")
     w1, b1, w2, b2 = entrenaRN(x.shape[1], 25, 10, x, y)
+    #w1, w2, b1, b2 = load_trained_data()
     prediction = np.array(prediceRNYaEntrenada(x, w1, b1, w2, b2))
+    #print("Error", check_error_percentage(y, prediction))
+    #guardando pesos y bias en archivos.txt
     np.savetxt("w1.txt", w1, delimiter=",")
     np.savetxt("w2.txt", w2, delimiter=",")
     np.savetxt("b1.txt", b1, delimiter=",")
