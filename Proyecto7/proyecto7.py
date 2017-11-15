@@ -98,8 +98,8 @@ if __name__ == '__main__':
     print("Proyecto 7 Adrian Biller A01018940")
     x = np.genfromtxt("ex7data2.txt", delimiter = " ")
     #llamando la inicializacion de centroides con 3 clusters y el vector x
-    centroids = kMeansInitCentroids(x,3)
-    runkMeans(x, centroids, 30, True)
+    initial_centroids = kMeansInitCentroids(x,3)
+    runkMeans(x, initial_centroids, 30, True)
     # closest_centroids = findClosestCentroids(x,centroids)
     # print(closest_centroids)
     # new_centroids = computeCentroids(x,closest_centroids,3)
