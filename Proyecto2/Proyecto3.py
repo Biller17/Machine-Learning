@@ -56,8 +56,8 @@ def gradienteDescendenteMultivariable(x,y,theta,alpha,iteraciones):
 def calcula_hipotesis(x, theta, index):
     #calcular hipotesis para un valor determinado de x
     hip = np.float64(0.0)
-    for i in range(0 , len(theta)):
-        hip += theta[i]* x[index,i]
+    for i in range(1 , len(theta)+1):
+        hip += theta[i-1]* x[index,i-1]**i
 
     #print "hipotesis: ", hip
     return hip
@@ -72,7 +72,7 @@ def graficaError(j_historial):
 
 
 
-def calculaCosto(x,y,theta):                       
+def calculaCosto(x,y,theta):
     cost = 0
 
     #calcular hipotesis para cada valor de x y y

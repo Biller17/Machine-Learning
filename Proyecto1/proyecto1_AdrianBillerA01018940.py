@@ -50,7 +50,7 @@ def calcula_costo(x, y, theta, index):
 #funcion que calcula la hipotesis de theta para poder calcular el costo
 def calcula_hipotesis(x, theta):
     #calcular hipotesis para un valor determinado de x
-    hip = theta[0] + theta[1]*x
+    hip = theta[0] + theta[1]*x**3
     return hip
 
 
